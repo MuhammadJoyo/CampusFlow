@@ -1,0 +1,82 @@
+# ═══════════════════════════════════════════════════
+# CampusFlow — .gitignore
+# ═══════════════════════════════════════════════════
+
+# ── Maven build output ──────────────────────────────
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# ── Java compiled classes & archives ───────────────
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+
+# ── Log files ───────────────────────────────────────
+*.log
+logs/
+
+# ── OS-generated files ──────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ── IntelliJ IDEA ───────────────────────────────────
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# ── Eclipse ─────────────────────────────────────────
+.classpath
+.project
+.settings/
+bin/
+.factorypath
+
+# ── VS Code / VSCodium ──────────────────────────────
+.vscode/
+!.vscode/extensions.json
+
+# ── NetBeans ────────────────────────────────────────
+nbproject/private/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# ── Gradle (if ever migrated) ───────────────────────
+.gradle/
+build/
+gradle-app.setting
+!gradle-wrapper.jar
+
+# ── SQLite database files ───────────────────────────
+*.db
+*.sqlite
+*.sqlite3
+
+# ── Environment & secrets ───────────────────────────
+.env
+*.env
+secrets.properties
+
+# ── JavaFX native libraries (platform-specific) ─────
+*.dll
+*.so
+*.dylib
+
+# ── Temporary files ─────────────────────────────────
+*.tmp
+*.bak
+*.swp
+*~

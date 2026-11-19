@@ -45,8 +45,10 @@ gain full oversight and analytics.
 |---|---|
 | Language | Java 21 |
 | UI Framework | JavaFX 21 |
-| Client-Server | Java `java.net` Sockets (built-in) |
-| Concurrency | `java.util.concurrent` (built-in) |
+| Client-Server | Java `java.net` Sockets (separate server process + desktop clients) |
+| Concurrency | `java.util.concurrent` (Thread Pool, `PriorityBlockingQueue`, `ScheduledExecutorService`) |
+| Password Hashing | BCrypt (via `jBCrypt`) |
+| DSL / Query Language | ANTLR4 (Ticket Query Language — TQL) |
 | Database | SQLite (via `sqlite-jdbc`) |
 | Logging | SLF4J 2 + Logback |
 | Testing | JUnit 5 (Jupiter) |

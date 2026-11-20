@@ -23,16 +23,17 @@ public final class StaffMember extends User {
     // ── Constructor ──────────────────────────────────────────────────────────
 
     /**
-     * Constructs a StaffMember account.
+     * Constructs a StaffMember account with password change enforcement.
      *
-     * @param id           database primary key
-     * @param username     unique login username
-     * @param passwordHash BCrypt password hash
-     * @param fullName     display name
-     * @param email        email address
-     * @param isActive     account active state
-     * @param createdAt    creation timestamp
-     * @param departmentId FK to the departments table (must be &gt; 0)
+     * @param id                 database primary key
+     * @param username           unique login username
+     * @param passwordHash       BCrypt password hash
+     * @param fullName           display name
+     * @param email              email address
+     * @param isActive           account active state
+     * @param createdAt          creation timestamp
+     * @param departmentId       FK to the departments table (must be &gt; 0)
+     * @param mustChangePassword whether password change is required
      * @throws IllegalArgumentException if departmentId ≤ 0
      */
     public StaffMember(int id,
@@ -42,12 +43,27 @@ public final class StaffMember extends User {
                        String email,
                        boolean isActive,
                        LocalDateTime createdAt,
-                       int departmentId) {
-        super(id, username, passwordHash, Role.STAFF, fullName, email, isActive, createdAt);
+                       int departmentId,
+                       boolean mustChangePassword) {
+        super(id, username, passwordHash, Role.STAFF, fullName, email, isActive, createdAt, mustChangePassword);
         if (departmentId <= 0) {
             throw new IllegalArgumentException("departmentId must be > 0, got: " + departmentId);
         }
         this.departmentId = departmentId;
+    }
+
+    /**
+     * Constructs a StaffMember account (backward-compatible, defaults mustChangePassword to false).
+     */
+    public StaffMember(int id,
+                       String username,
+                       String passwordHash,
+                       String fullName,
+                       String email,
+                       boolean isActive,
+                       LocalDateTime createdAt,
+                       int departmentId) {
+        this(id, username, passwordHash, fullName, email, isActive, createdAt, departmentId, false);
     }
 
     // ── Getter ───────────────────────────────────────────────────────────────

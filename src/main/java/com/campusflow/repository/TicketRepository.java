@@ -257,7 +257,7 @@ public class TicketRepository {
             JOIN departments d ON c.department_id = d.id
             JOIN users u_sub ON t.submitter_id = u_sub.id
             LEFT JOIN users u_assign ON t.assigned_staff_id = u_assign.id
-            """ + " " + where.whereClause() + """
+            """ + "\n" + where.whereClause() + "\n" + """
             ORDER BY
               CASE UPPER(t.priority)
                 WHEN 'CRITICAL' THEN 0

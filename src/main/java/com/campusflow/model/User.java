@@ -37,20 +37,22 @@ public abstract class User {
     private final String email;
     private boolean isActive;
     private final LocalDateTime createdAt;
+    private boolean mustChangePassword;
 
-    // ── Constructor ──────────────────────────────────────────────────────────
+    // ── Constructors ─────────────────────────────────────────────────────────
 
     /**
-     * Constructs a User with all required fields.
+     * Constructs a User with all required fields including password change enforcement.
      *
-     * @param id           database primary key (≥ 0; 0 is used for transient instances)
-     * @param username     unique login username (non-null, non-blank)
-     * @param passwordHash BCrypt hash of the password (non-null, non-blank)
-     * @param role         user role (non-null)
-     * @param fullName     display name (non-null, non-blank)
-     * @param email        email address (non-null, non-blank)
-     * @param isActive     whether the account is active
-     * @param createdAt    account creation timestamp (non-null)
+     * @param id                 database primary key (≥ 0; 0 is used for transient instances)
+     * @param username           unique login username (non-null, non-blank)
+     * @param passwordHash       BCrypt hash of the password (non-null, non-blank)
+     * @param role               user role (non-null)
+     * @param fullName           display name (non-null, non-blank)
+     * @param email              email address (non-null, non-blank)
+     * @param isActive           whether the account is active
+     * @param createdAt          account creation timestamp (non-null)
+     * @param mustChangePassword whether the user must change password on next login
      * @throws NullPointerException     if any reference parameter is null
      * @throws IllegalArgumentException if username, passwordHash, fullName, or email is blank
      */
@@ -61,7 +63,8 @@ public abstract class User {
                    String fullName,
                    String email,
                    boolean isActive,
-                   LocalDateTime createdAt) {
+                   LocalDateTime createdAt,
+                   boolean mustChangePassword) {
 
         Objects.requireNonNull(username,     "username must not be null");
         Objects.requireNonNull(passwordHash, "passwordHash must not be null");
@@ -75,15 +78,29 @@ public abstract class User {
         if (fullName.isBlank())     throw new IllegalArgumentException("fullName must not be blank");
         if (email.isBlank())        throw new IllegalArgumentException("email must not be blank");
 
-        this.id           = id;
-        this.username     = username;
-        this.passwordHash = passwordHash;
-        this.role         = role;
-        this.fullName     = fullName;
-        this.email        = email;
-        this.isActive     = isActive;
-        // LocalDateTime is immutable; defensive copy is good SCD practice
-        this.createdAt    = LocalDateTime.from(createdAt);
+        this.id                 = id;
+        this.username           = username;
+        this.passwordHash       = passwordHash;
+        this.role               = role;
+        this.fullName           = fullName;
+        this.email              = email;
+        this.isActive           = isActive;
+        this.createdAt          = LocalDateTime.from(createdAt);
+        this.mustChangePassword = mustChangePassword;
+    }
+
+    /**
+     * Backward-compatible constructor defaulting {@code mustChangePassword} to {@code false}.
+     */
+    protected User(int id,
+                   String username,
+                   String passwordHash,
+                   Role role,
+                   String fullName,
+                   String email,
+                   boolean isActive,
+                   LocalDateTime createdAt) {
+        this(id, username, passwordHash, role, fullName, email, isActive, createdAt, false);
     }
 
     // ── Getters ──────────────────────────────────────────────────────────────
@@ -119,6 +136,16 @@ public abstract class User {
      * @return BCrypt hash string
      */
     public String getPasswordHash() { return passwordHash; }
+
+    /** @return whether the user is required to change password upon login */
+    public boolean isMustChangePassword() { return mustChangePassword; }
+
+    /**
+     * Sets whether this user must change password upon next login.
+     *
+     * @param mustChangePassword new flag value
+     */
+    public void setMustChangePassword(boolean mustChangePassword) { this.mustChangePassword = mustChangePassword; }
 
     // ── Mutation ─────────────────────────────────────────────────────────────
 

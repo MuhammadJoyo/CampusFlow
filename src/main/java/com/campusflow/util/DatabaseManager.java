@@ -169,15 +169,16 @@ public final class DatabaseManager {
             // Users table
             """
             CREATE TABLE IF NOT EXISTS users (
-                id              INTEGER PRIMARY KEY AUTOINCREMENT,
-                username        TEXT    NOT NULL UNIQUE,
-                password_hash   TEXT    NOT NULL,
-                role            TEXT    NOT NULL CHECK (UPPER(role) IN ('STUDENT', 'STAFF', 'ADMIN')),
-                full_name       TEXT    NOT NULL,
-                email           TEXT    NOT NULL UNIQUE,
-                department_id   INTEGER REFERENCES departments(id) ON DELETE SET NULL,
-                is_active       INTEGER NOT NULL DEFAULT 1,
-                created_at      TEXT    NOT NULL
+                id                   INTEGER PRIMARY KEY AUTOINCREMENT,
+                username             TEXT    NOT NULL UNIQUE,
+                password_hash        TEXT    NOT NULL,
+                role                 TEXT    NOT NULL CHECK (UPPER(role) IN ('STUDENT', 'STAFF', 'ADMIN')),
+                full_name            TEXT    NOT NULL,
+                email                TEXT    NOT NULL UNIQUE,
+                department_id        INTEGER REFERENCES departments(id) ON DELETE SET NULL,
+                is_active            INTEGER NOT NULL DEFAULT 1,
+                created_at           TEXT    NOT NULL,
+                must_change_password INTEGER NOT NULL DEFAULT 0
             );
             """,
 
@@ -251,6 +252,7 @@ public final class DatabaseManager {
                 for (String ddl : ddlStatements) {
                     stmt.execute(ddl);
                 }
+                migrateSchema(conn);
                 conn.commit();
                 log.info("Database schema and indexes successfully initialised.");
             } catch (SQLException e) {
@@ -372,8 +374,8 @@ public final class DatabaseManager {
         }
 
         String insertUserSql = """
-            INSERT INTO users (username, password_hash, role, full_name, email, department_id, is_active, created_at)
-            VALUES (?, ?, ?, ?, ?, NULL, 1, ?)
+            INSERT INTO users (username, password_hash, role, full_name, email, department_id, is_active, created_at, must_change_password)
+            VALUES (?, ?, ?, ?, ?, NULL, 1, ?, 1)
             """;
 
         String adminHash = PasswordUtil.hash(DEFAULT_ADMIN_INITIAL_PASSWORD);
@@ -402,6 +404,28 @@ public final class DatabaseManager {
 
         log.info("Default administrator account seeded (username: '{}'). Password change on first login recommended.",
                  DEFAULT_ADMIN_USERNAME);
+    }
+
+    private static void migrateSchema(Connection conn) throws SQLException {
+        boolean hasMustChangePassword = false;
+        try (Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery("PRAGMA table_info(users)")) {
+            while (rs.next()) {
+                String colName = rs.getString("name");
+                if ("must_change_password".equalsIgnoreCase(colName)) {
+                    hasMustChangePassword = true;
+                    break;
+                }
+            }
+        }
+
+        if (!hasMustChangePassword) {
+            log.info("Migrating schema: adding 'must_change_password' column to users table...");
+            try (Statement stmt = conn.createStatement()) {
+                stmt.execute("ALTER TABLE users ADD COLUMN must_change_password INTEGER NOT NULL DEFAULT 0;");
+            }
+            log.info("Schema migration completed: 'must_change_password' column added.");
+        }
     }
 
     // ── Helper Methods ────────────────────────────────────────────────────────

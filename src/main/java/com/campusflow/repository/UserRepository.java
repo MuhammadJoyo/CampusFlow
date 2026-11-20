@@ -132,8 +132,8 @@ public class UserRepository {
         Objects.requireNonNull(conn, "Connection must not be null");
 
         String sql = """
-            INSERT INTO users (username, password_hash, role, full_name, email, department_id, is_active, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO users (username, password_hash, role, full_name, email, department_id, is_active, created_at, must_change_password)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """;
 
         try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -151,6 +151,7 @@ public class UserRepository {
 
             ps.setInt(7, user.isActive() ? 1 : 0);
             ps.setString(8, user.getCreatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
+            ps.setInt(9, user.isMustChangePassword() ? 1 : 0);
             ps.executeUpdate();
 
             try (ResultSet keys = ps.getGeneratedKeys()) {
@@ -169,7 +170,7 @@ public class UserRepository {
 
         String sql = """
             UPDATE users
-            SET full_name = ?, email = ?, password_hash = ?, department_id = ?, is_active = ?
+            SET full_name = ?, email = ?, password_hash = ?, department_id = ?, is_active = ?, must_change_password = ?
             WHERE id = ?
             """;
 
@@ -185,7 +186,8 @@ public class UserRepository {
             }
 
             ps.setInt(5, user.isActive() ? 1 : 0);
-            ps.setInt(6, user.getId());
+            ps.setInt(6, user.isMustChangePassword() ? 1 : 0);
+            ps.setInt(7, user.getId());
             ps.executeUpdate();
         }
     }
@@ -213,25 +215,35 @@ public class UserRepository {
         boolean isActive = rs.getInt("is_active") == 1;
         String createdAtStr = rs.getString("created_at");
 
+        int mustChangeInt = 0;
+        try {
+            mustChangeInt = rs.getInt("must_change_password");
+        } catch (SQLException ignored) {
+            // legacy projection or older table info
+        }
+        boolean mustChangePassword = mustChangeInt == 1;
+
         Role role = Role.valueOf(roleStr.toUpperCase());
         LocalDateTime createdAt = LocalDateTime.parse(createdAtStr);
 
         return switch (role) {
-            case STUDENT -> new Student(id, username, passwordHash, fullName, email, isActive, createdAt);
-            case STAFF   -> new StaffMember(id, username, passwordHash, fullName, email, isActive, createdAt, departmentId);
-            case ADMIN   -> new Admin(id, username, passwordHash, fullName, email, isActive, createdAt);
+            case STUDENT -> new Student(id, username, passwordHash, fullName, email, isActive, createdAt, mustChangePassword);
+            case STAFF   -> new StaffMember(id, username, passwordHash, fullName, email, isActive, createdAt, departmentId, mustChangePassword);
+            case ADMIN   -> new Admin(id, username, passwordHash, fullName, email, isActive, createdAt, mustChangePassword);
         };
     }
 
     private User instantiateUser(int id, User template) {
         return switch (template.getRole()) {
             case STUDENT -> new Student(id, template.getUsername(), template.getPasswordHash(),
-                    template.getFullName(), template.getEmail(), template.isActive(), template.getCreatedAt());
+                    template.getFullName(), template.getEmail(), template.isActive(), template.getCreatedAt(),
+                    template.isMustChangePassword());
             case STAFF   -> new StaffMember(id, template.getUsername(), template.getPasswordHash(),
                     template.getFullName(), template.getEmail(), template.isActive(), template.getCreatedAt(),
-                    ((StaffMember) template).getDepartmentId());
+                    ((StaffMember) template).getDepartmentId(), template.isMustChangePassword());
             case ADMIN   -> new Admin(id, template.getUsername(), template.getPasswordHash(),
-                    template.getFullName(), template.getEmail(), template.isActive(), template.getCreatedAt());
+                    template.getFullName(), template.getEmail(), template.isActive(), template.getCreatedAt(),
+                    template.isMustChangePassword());
         };
     }
 }

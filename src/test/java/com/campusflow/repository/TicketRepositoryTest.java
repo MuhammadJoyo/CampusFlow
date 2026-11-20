@@ -169,4 +169,15 @@ class TicketRepositoryTest {
         assertEquals("High Ticket", results.get(1).getTitle(), "HIGH priority must appear second");
         assertEquals("Low Ticket", results.get(2).getTitle(), "LOW priority must appear third");
     }
+
+    @Test
+    @DisplayName("search with empty TicketFilter executes valid SQL without token collision (regression)")
+    void searchEmptyFilterRegression() {
+        ticketRepo.save(new Ticket.Builder().title("Regr Ticket").description("D").priority(Priority.LOW).status(TicketStatus.OPEN).categoryId(1).submitterId(student1Id).createdAt(LocalDateTime.now()).build());
+
+        TicketFilter emptyFilter = new TicketFilter();
+        List<Ticket> results = ticketRepo.search(emptyFilter, Role.ADMIN, 1);
+        assertNotNull(results);
+        assertFalse(results.isEmpty());
+    }
 }

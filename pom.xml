@@ -42,6 +42,7 @@
         <slf4j.version>2.0.13</slf4j.version>
         <logback.version>1.5.6</logback.version>
         <jbcrypt.version>0.4</jbcrypt.version>
+        <gson.version>2.11.0</gson.version>
 
         <!-- Plugin versions -->
         <maven.compiler.plugin.version>3.13.0</maven.compiler.plugin.version>
@@ -71,6 +72,13 @@
             <groupId>org.mindrot</groupId>
             <artifactId>jbcrypt</artifactId>
             <version>${jbcrypt.version}</version>
+        </dependency>
+
+        <!-- ── JSON Serialization: Gson ─────────────── -->
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>${gson.version}</version>
         </dependency>
 
         <!-- ── SQLite JDBC ──────────────────────────── -->
